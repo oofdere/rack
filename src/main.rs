@@ -1,7 +1,7 @@
 use clap::Parser;
 use std::error::Error;
-use std::fs;
 use std::str::FromStr;
+use std::{fs, str};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -148,8 +148,21 @@ fn main() -> Result<(), Box<dyn Error>> {
     for op in input.lines() {
         if op.is_empty() || op.starts_with("//") {
         } else if op.starts_with("@") {
-            stack.push(Instruction::Addr(op[1..].parse().unwrap()));
-            println!("addr: {}", op);
+            let inst = Instruction::Addr(match op[1..].parse() {
+                Ok(i) => i,
+                Err(e) => match &op[1..] {
+                    "SP" => 0,
+                    "LCL" => 1,
+                    "ARG" => 2,
+                    "THIS" => 3,
+                    "THAT" => 4,
+                    "SCREEN" => 16384,
+                    "KBD" => 24576,
+                    _ => 0,
+                },
+            });
+            println!("addr: {} {:?}", op, inst);
+            stack.push(inst);
         } else {
             let mut inst: CompInstr = CompInstr {
                 dest: Dest::Null,
@@ -159,7 +172,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let op: &str = match op.split_once("=") {
                 Some(s) => {
-                    inst.dest = Dest::from_str(&s.0).unwrap();
+                    inst.dest = match Dest::from_str(&s.0) {
+                        Ok(i) => i,
+                        Err(e) => panic!("error parsing dest: {s:?}\n{e:?}"),
+                    };
                     s.1
                 }
                 None => op,
@@ -167,22 +183,25 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let op: &str = match op.split_once(";") {
                 Some(s) => {
-                    println!("{:?}", s);
-                    inst.jump = Jump::from_str(&s.0).unwrap();
-                    s.1
+                    inst.jump = match Jump::from_str(&s.1) {
+                        Ok(i) => i,
+                        Err(e) => panic!("error parsing jump: {s:?}\n{e:?}"),
+                    };
+                    s.0
                 }
                 None => op,
             };
 
-            inst.comp = Comp::from_str(&op).unwrap();
+            inst.comp = match Comp::from_str(&op) {
+                Ok(i) => i,
+                Err(e) => panic!("error parsing comp: {op:?}\n{e:?}"),
+            };
 
             println!("comp: {} {:?}", op, inst);
 
             stack.push(Instruction::Comp(inst));
         }
     }
-
-    println!("{:?}", stack);
 
     Ok(())
 }
