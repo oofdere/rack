@@ -146,11 +146,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut stack: Vec<Instruction> = Vec::new();
 
     for op in input.lines() {
+        let op = match op.split_once("//") {
+            Some(i) => i.0,
+            None => op,
+        }
+        .trim();
+
         if op.is_empty() || op.starts_with("//") {
         } else if op.starts_with("@") {
             let inst = Instruction::Addr(match op[1..].parse() {
                 Ok(i) => i,
-                Err(e) => match &op[1..] {
+                Err(_) => match &op[1..] {
                     "SP" => 0,
                     "LCL" => 1,
                     "ARG" => 2,
@@ -158,7 +164,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                     "THAT" => 4,
                     "SCREEN" => 16384,
                     "KBD" => 24576,
-                    _ => 0,
+                    _ => match op[2..].parse() {
+                        Ok(i) => i,
+                        Err(e) => panic!("{} {}", op, e),
+                    },
                 },
             });
             println!("addr: {} {:?}", op, inst);
