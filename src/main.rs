@@ -80,7 +80,7 @@ impl FromStr for Comp {
 
 #[derive(Debug)]
 enum Dest {
-    Null,
+    None,
     M,
     D,
     DM,
@@ -102,14 +102,14 @@ impl FromStr for Dest {
             "AM" => Ok(Dest::AM),
             "AD" => Ok(Dest::AD),
             "ADM" => Ok(Dest::ADM),
-            _ => Ok(Dest::Null),
+            _ => Ok(Dest::None),
         }
     }
 }
 
 #[derive(Debug)]
 enum Jump {
-    Null,
+    None,
     JGT,
     JEQ,
     JGE,
@@ -131,7 +131,7 @@ impl FromStr for Jump {
             "JNE" => Ok(Jump::JNE),
             "JLE" => Ok(Jump::JLE),
             "JMP" => Ok(Jump::JMP),
-            _ => Ok(Jump::Null),
+            _ => Ok(Jump::None),
         }
     }
 }
@@ -174,9 +174,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             stack.push(inst);
         } else {
             let mut inst: CompInstr = CompInstr {
-                dest: Dest::Null,
+                dest: Dest::None,
                 comp: Comp::Zero,
-                jump: Jump::Null,
+                jump: Jump::None,
             };
 
             let op: &str = match op.split_once("=") {
