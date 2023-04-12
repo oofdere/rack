@@ -10,8 +10,14 @@ right now I'm just trying to get through part 2 of nand2tetris, but if I'm going
    - [x] C-instruction parsing
    - [ ] Labels
    - [ ] Symbols
- - [ ] file output
+   - [ ] file output
+   - [ ] debug symbols (far future)
+ - [ ] hack disassembler
  - [ ] jack compiler
  - [ ] OS
+ - [ ] ROM/program loader (like those knockoff 5 trillion in one famicom carts)
  - [ ] VM
- 
+ - [ ] hack debugger
+ - [ ] GUI
+ - [ ] WebAssembly
+ - [ ] unit tests
