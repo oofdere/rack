@@ -251,5 +251,16 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
+    let mut out: String = String::new();
+
+    for op in stack {
+        match op {
+            Instruction::Addr(a) => out.push_str(&format!("0{:015b}\n", a)[..]),
+            Instruction::Comp(c) => continue,
+        }
+    }
+
+    println!("{}", out);
+
     Ok(())
 }
