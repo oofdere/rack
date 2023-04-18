@@ -1,4 +1,5 @@
 use clap::Parser;
+use std::collections::HashMap;
 use std::error::Error;
 use std::str::FromStr;
 use std::{fs, str};
@@ -17,7 +18,7 @@ struct Args {
 
 #[derive(Debug)]
 enum Instruction {
-    Addr(i32),
+    Addr(usize),
     Comp(CompInstr),
 }
 
@@ -141,11 +142,39 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("Compiling {} into {}...", args.input, args.output);
 
+    println!(
+        "Starting first stage: Removing comments and whitespace, and converting labels to pointers..."
+    );
+
     let input = fs::read_to_string(args.input)?;
+
+    let mut addrs: HashMap<&str, usize> = HashMap::new();
+    let mut var_addr = 16;
+    let mut ops: Vec<&str> = Vec::new();
+
+    for (i, op) in input.lines().enumerate() {
+        let op = match op.split_once("//") {
+            Some(i) => i.0,
+            None => op,
+        }
+        .trim();
+
+        if op.is_empty() || op.starts_with("//") {
+        } else if op.starts_with("(") {
+            println!("Label found: {}", op);
+            addrs.insert(&op[1..op.len() - 1], i);
+        } else {
+            ops.push(op);
+        }
+    }
+
+    println!("{:?}", addrs);
+
+    println!("Starting second stage: Conversion to internal intermediate representation...");
 
     let mut stack: Vec<Instruction> = Vec::new();
 
-    for op in input.lines() {
+    for op in ops {
         let op = match op.split_once("//") {
             Some(i) => i.0,
             None => op,
@@ -164,9 +193,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                     "THAT" => 4,
                     "SCREEN" => 16384,
                     "KBD" => 24576,
-                    _ => match op[2..].parse() {
-                        Ok(i) => i,
-                        Err(e) => panic!("{} {}", op, e),
+                    _ => match addrs.get(&op[1..]) {
+                        // check if address is in map
+                        Some(&v) => v,
+                        None => match op[2..].parse() {
+                            // parse addresses in format @Rx
+                            Ok(i) => i,
+                            Err(_) => {
+                                // add variable to map
+                                addrs.insert(&op[1..], var_addr);
+                                var_addr += 1;
+                                var_addr - 1 // has to be a better way to do this
+                            }
+                        },
                     },
                 },
             });
