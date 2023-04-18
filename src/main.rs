@@ -287,5 +287,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("{}", out);
 
+    fs::write(args.output, out).expect("Failed to write file.");
+
     Ok(())
 }
