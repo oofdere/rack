@@ -31,24 +31,34 @@ struct CompInstr {
 
 #[derive(Debug)]
 enum Comp {
-    Zero,
-    One,
-    NegOne,
-    D,
-    A,
-    NotD,
-    NotA,
-    NegD,
-    NegA,
-    IncD,
-    IncA,
-    DecD,
-    DecA,
-    DPlusA,
-    DMinusA,
-    AMinusD,
-    DAndA,
-    DOrA,
+    Zero = 0b0101010,
+    One = 0b0111111,
+    NegOne = 0b0111010,
+    D = 0b0001100,
+    A = 0b0110000,
+    M = 0b1110000,
+    NotD = 0b0001101,
+    NotA = 0b0110001,
+    NotM = 0b1110001,
+    NegD = 0b0001111,
+    NegA = 0b0110011,
+    NegM = 0b1110011,
+    IncD = 0b0011111,
+    IncA = 0b0110111,
+    IncM = 0b1110111,
+    DecD = 0b0001110,
+    DecA = 0b0110010,
+    DecM = 0b1110010,
+    DPlusA = 0b0000010,
+    DPlusM = 0b1000010,
+    DMinusA = 0b0010011,
+    DMinusM = 0b1010011,
+    AMinusD = 0b0000111,
+    MMinusD = 0b1000111,
+    DAndA = 0b0000000,
+    DAndM = 0b1000000,
+    DOrA = 0b0010101,
+    DOrM = 0b1010101,
 }
 
 impl FromStr for Comp {
@@ -60,20 +70,30 @@ impl FromStr for Comp {
             "1" => Ok(Comp::One),
             "-1" => Ok(Comp::NegOne),
             "D" => Ok(Comp::D),
-            "A" | "M" => Ok(Comp::A),
+            "A" => Ok(Comp::A),
+            "M" => Ok(Comp::M),
             "!D" => Ok(Comp::NotD),
-            "!A" | "!M" => Ok(Comp::NotA),
+            "!A" => Ok(Comp::NotA),
+            "!M" => Ok(Comp::NotM),
             "-D" => Ok(Comp::NegD),
-            "-A" | "-M" => Ok(Comp::NegA),
+            "-A" => Ok(Comp::NegA),
+            "-M" => Ok(Comp::NegM),
             "D+1" => Ok(Comp::IncD),
-            "A+1" | "M+1" => Ok(Comp::IncA),
+            "A+1" => Ok(Comp::IncA),
+            "M+1" => Ok(Comp::IncM),
             "D-1" => Ok(Comp::DecD),
-            "A-1" | "M-1" => Ok(Comp::DecA),
-            "D+A" | "D+M" => Ok(Comp::DPlusA),
-            "D-A" | "D-M" => Ok(Comp::DMinusA),
-            "A-D" | "M-D" => Ok(Comp::AMinusD),
-            "D&A" | "D&M" => Ok(Comp::DAndA),
-            "D|A" | "D|M" => Ok(Comp::DOrA),
+            "A-1" => Ok(Comp::DecA),
+            "M-1" => Ok(Comp::DecM),
+            "D+A" => Ok(Comp::DPlusA),
+            "D+M" => Ok(Comp::DPlusM),
+            "D-A" => Ok(Comp::DMinusA),
+            "D-M" => Ok(Comp::DMinusM),
+            "A-D" => Ok(Comp::AMinusD),
+            "M-D" => Ok(Comp::MMinusD),
+            "D&A" => Ok(Comp::DAndA),
+            "D&M" => Ok(Comp::DAndM),
+            "D|A" => Ok(Comp::DOrA),
+            "D|M" => Ok(Comp::DOrM),
             _ => Err(()),
         }
     }
@@ -81,14 +101,14 @@ impl FromStr for Comp {
 
 #[derive(Debug)]
 enum Dest {
-    None,
-    M,
-    D,
-    DM,
-    A,
-    AM,
-    AD,
-    ADM,
+    None = 0b000,
+    M = 0b001,
+    D = 0b010,
+    DM = 0b011,
+    A = 0b100,
+    AM = 0b101,
+    AD = 0b110,
+    ADM = 0b111,
 }
 
 impl FromStr for Dest {
@@ -110,14 +130,14 @@ impl FromStr for Dest {
 
 #[derive(Debug)]
 enum Jump {
-    None,
-    JGT,
-    JEQ,
-    JGE,
-    JLT,
-    JNE,
-    JLE,
-    JMP,
+    None = 0b000,
+    JGT = 0b001,
+    JEQ = 0b0010,
+    JGE = 0b011,
+    JLT = 0b100,
+    JNE = 0b101,
+    JLE = 0b110,
+    JMP = 0b111,
 }
 
 impl FromStr for Jump {
@@ -256,7 +276,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     for op in stack {
         match op {
             Instruction::Addr(a) => out.push_str(&format!("0{:015b}\n", a)[..]),
-            Instruction::Comp(c) => continue,
+            Instruction::Comp(c) => out.push_str(
+                &format!(
+                    "111{:07b}{:03b}{:03b}\n",
+                    c.comp as isize, c.dest as isize, c.jump as isize
+                )[..],
+            ),
         }
     }
 
