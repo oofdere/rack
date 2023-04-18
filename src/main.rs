@@ -172,19 +172,24 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut var_addr = 16;
     let mut ops: Vec<&str> = Vec::new();
 
-    for (i, op) in input.lines().enumerate() {
+    let mut i = 0;
+    for op in input.lines() {
+        if op.is_empty() || op.starts_with("//") {
+            continue;
+        }
+
         let op = match op.split_once("//") {
             Some(i) => i.0,
             None => op,
         }
         .trim();
 
-        if op.is_empty() || op.starts_with("//") {
-        } else if op.starts_with("(") {
+        if op.starts_with("(") {
             println!("Label found: {}", op);
             addrs.insert(&op[1..op.len() - 1], i);
         } else {
             ops.push(op);
+            i += 1
         }
     }
 
