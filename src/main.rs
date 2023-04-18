@@ -1,6 +1,7 @@
 use clap::Parser;
 use std::collections::HashMap;
 use std::error::Error;
+use std::fmt::{Binary, Formatter, Result as FmtResult};
 use std::str::FromStr;
 use std::{fs, str};
 
@@ -100,31 +101,22 @@ impl FromStr for Comp {
 }
 
 #[derive(Debug)]
-enum Dest {
-    None = 0b000,
-    M = 0b001,
-    D = 0b010,
-    DM = 0b011,
-    A = 0b100,
-    AM = 0b101,
-    AD = 0b110,
-    ADM = 0b111,
-}
+struct Dest(bool, bool, bool); // (M, D, A)
 
 impl FromStr for Dest {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "M" => Ok(Dest::M),
-            "D" => Ok(Dest::D),
-            "DM" => Ok(Dest::DM),
-            "A" => Ok(Dest::A),
-            "AM" => Ok(Dest::AM),
-            "AD" => Ok(Dest::AD),
-            "ADM" => Ok(Dest::ADM),
-            _ => Ok(Dest::None),
-        }
+        Ok(Dest(s.contains("A"), s.contains("D"), s.contains("M")))
+    }
+}
+
+impl Dest {
+    fn binary_str(&self) -> String {
+        format!(
+            "{:b}{:b}{:b}",
+            self.0 as isize, self.1 as isize, self.2 as isize
+        )
     }
 }
 
@@ -238,7 +230,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             stack.push(inst);
         } else {
             let mut inst: CompInstr = CompInstr {
-                dest: Dest::None,
+                dest: Dest(false, false, false),
                 comp: Comp::Zero,
                 jump: Jump::None,
             };
@@ -283,8 +275,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             Instruction::Addr(a) => out.push_str(&format!("0{:015b}\n", a)[..]),
             Instruction::Comp(c) => out.push_str(
                 &format!(
-                    "111{:07b}{:03b}{:03b}\n",
-                    c.comp as isize, c.dest as isize, c.jump as isize
+                    "111{:07b}{}{:03b}\n",
+                    c.comp as isize,
+                    c.dest.binary_str(),
+                    c.jump as isize
                 )[..],
             ),
         }
